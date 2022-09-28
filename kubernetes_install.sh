@@ -1,6 +1,16 @@
 #/bin/bash
+#wget https://bryan86.hu/kubernetes_install.sh
 
-# wget bryan86.hu/kubernetes.sh
+sudo tee /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+sudo swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
 #Docker install
 
 sudo mkdir -p /etc/apt/keyrings
@@ -30,25 +40,33 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo cat << EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
 EOF
 
 sudo sysctl --system
-sudo swapoff -a
 
-#Ubuntu bug fix
-sudo rm /etc/containerd/config.toml
+#Ubuntu fix
+
+containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
 sudo systemctl restart containerd
+sudo sysctl net/netfilter/nf_conntrack_max=52428
+
 
 echo "CIDR: (Pl. 10.244.0.0/16)"
 read cidr
 kubeadm init --pod-network-cidr=$cidr
 
-export KUBECONFIG=/etc/kubernetes/admin.conf
+#export KUBECONFIG=/etc/kubernetes/admin.conf
 
 #Config
-#mkdir -p $HOME/.kube
-#sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-#sudo chown $(id -u):$(id -g) $HOME/.kube/config
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+#Add Calico for networking
+curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
+kubectl apply -f calico.yaml
 
 #Test pods running state
-#kubectl get pod -A -o wide
+kubectl get pod -A -o wide
