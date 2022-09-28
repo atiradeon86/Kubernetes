@@ -1,5 +1,6 @@
 #/bin/bash
 
+# wget bryan86.hu/kubernetes.sh
 #Docker install
 
 sudo mkdir -p /etc/apt/keyrings
