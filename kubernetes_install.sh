@@ -23,7 +23,6 @@ sudo touch /etc/apt/sources.list.d/kubernetes.list
 sudo echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
 
 sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 sudo apt-get install -y kubelet kubeadm kubectl
 
 #Kubernetes Cluster Initial setup
