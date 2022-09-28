@@ -39,9 +39,8 @@ sudo rm /etc/containerd/config.toml
 sudo systemctl restart containerd
 
 echo "CIDR: (Pl. 10.244.0.0/16)"
-ip=$(hostname -I |cut -f1 -d " ")
 read cidr
-kubeadm init --apiserver-advertise-address=$ip --pod-network-cidr=$cidr
+kubeadm init --pod-network-cidr=$cidr
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
